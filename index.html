@@ -64,10 +64,9 @@ var oldvals = {
   'Node 5': 0,
   'Node 6': 0,
   'Node 7': 0,
-  'Node 8': 0
 };
 
-d3.csv("data.csv", function(error, data) {
+d3.csv("tonne_sorted.csv", function(error, data) {
   color.domain(d3.keys(data[0]).filter(function(key) { return key !== "timestamp" }));
 
   var nodes = color.domain().map(function(name) {
@@ -96,7 +95,12 @@ d3.csv("data.csv", function(error, data) {
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+      .call(xAxis)
+    .append("text")
+      .attr("x", width)
+      .attr("y", -5)
+      .style("text-anchor", "end")
+      .text("Zeit in ms");
 
   svg.append("g")
       .attr("class", "y axis")
@@ -106,7 +110,7 @@ d3.csv("data.csv", function(error, data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Schwingungen");
+      .text("||v|| in [g]");
 
   var node = svg.selectAll(".node")
       .data(nodes)

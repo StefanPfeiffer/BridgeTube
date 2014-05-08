@@ -7,7 +7,8 @@ PlotProvider = function(){};
 PlotProvider.prototype.dummyData = [];
 
 PlotProvider.prototype.findAll = function(callback) {
-  callback( null, this.dummyData )
+  parseFiles(fs.readdirSync("data/"));
+  callback( null, this.dummyData );
 };
 
 PlotProvider.prototype.findById = function(id, callback) {
@@ -21,7 +22,7 @@ PlotProvider.prototype.findById = function(id, callback) {
   callback(null, result);
 };
 
-PlotProvider.prototype.save = function(plots, callback) {
+PlotProvider.prototype.save = function(plots, c, callback) {
   var plot = null;
 
   if( typeof(plots.length)=="undefined")
@@ -32,20 +33,13 @@ PlotProvider.prototype.save = function(plots, callback) {
     plot._id = plotCounter++;
     plot.created_at = new Date();
 
-    if( plot.comments === undefined )
-      plot.comments = [];
-
-    for(var j =0;j< plot.comments.length; j++) {
-      plot.comments[j].created_at = new Date();
-    }
-    this.dummyData[this.dummyData.length]= plot;
+    this.dummyData[c]= plot;
   }
   callback(null, plots);
 };
 
-var results = [];
 
-function callback (err, list) {
+function fillData (err, results) {
   if (err) {
     console.log(err);
   } else {
@@ -56,22 +50,20 @@ function callback (err, list) {
       ts.setUTCSeconds(secs);
       new PlotProvider().save([
           {title: 'Plot ' + (i+1), body: isNaN(ts) ? results[i] : ts}
-        ], function(error, plots){});
+        ], i, function(error, plots){});
     };
   }
 }
 
-function parseFiles (err, files) {
-  if (err) {
-    return callback(err, list);
-  } else {
-    for (var i = 0; i < files.length; i++) {
-      if (path.extname(files[i]) == ".csv") {
-        results.push(files[i]);
-      }
-    };
-    callback(null, results);
-  }
+function parseFiles (files) {
+  var results = [];
+  plotCounter = 1;
+  for (var i = files.length; i >= 0; i--) {
+    if (path.extname(files[i]) == ".csv") {
+      results.push(files[i]);
+    }
+  };
+  fillData(null, results);
 }
 
 fs.readdir("data/", parseFiles);

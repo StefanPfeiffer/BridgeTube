@@ -50,8 +50,12 @@ function callback (err, list) {
     console.log(err);
   } else {
     for (var i = 0; i < results.length; i++) {
+      var ts_string = results[i].substring(0,results[i].indexOf(".csv"));
+      var secs = +ts_string;
+      var ts = new Date(0);
+      ts.setUTCSeconds(secs);
       new PlotProvider().save([
-          {title: 'Plot ' + (i+1), body: results[i]}
+          {title: 'Plot ' + (i+1), body: isNaN(ts) ? results[i] : ts}
         ], function(error, plots){});
     };
   }

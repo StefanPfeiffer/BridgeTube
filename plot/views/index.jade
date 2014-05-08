@@ -1,0 +1,8 @@
+h1= title
+#plots
+    - each plot in plots
+      div.plot
+        div.created_at= plot.created_at
+        div.title 
+            a(href="/plot/"+plot._id)!= plot.title
+        div.body= plot.body

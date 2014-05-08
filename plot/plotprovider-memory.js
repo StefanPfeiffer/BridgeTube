@@ -66,6 +66,4 @@ function parseFiles (files) {
   fillData(null, results);
 }
 
-fs.readdir("data/", parseFiles);
-
 exports.PlotProvider = PlotProvider;

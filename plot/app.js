@@ -31,7 +31,7 @@ var plotProvider= new PlotProvider();
 app.get('/', function(req, res){
   plotProvider.findAll(function(error, docs){
     res.render('index.jade', { locals: {
-      title: 'Plots',
+      title: 'LNDW 14: BMBF Projekt VIVE Brückenüberwachung',
       plots:docs
       } 
     });

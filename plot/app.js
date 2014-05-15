@@ -1,4 +1,5 @@
 var express = require('express');
+var fs = require('fs');
 var PlotProvider = require('./plotprovider-memory').PlotProvider;
 
 var app = module.exports = express.createServer();
@@ -38,8 +39,12 @@ app.get('/', function(req, res){
   })
 });
 
-app.get('/plot/:id', function(req, res) {
-    res.sendfile('html/plot_' + req.params.id + '.html', {root: __dirname});
+app.get('/plot/:name', function(req, res) {
+    var htmlstring = fs.readFileSync('html/plotmaster.html');
+
+    htmlstring = htmlstring.toString().replace("ERSETZMICHBITTE",req.params.name);
+
+    res.send(htmlstring);
 });
 
 app.listen(80);

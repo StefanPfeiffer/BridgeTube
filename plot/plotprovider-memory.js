@@ -11,18 +11,8 @@ PlotProvider.prototype.findAll = function(callback) {
   callback( null, this.dummyData );
 };
 
-PlotProvider.prototype.findById = function(id, callback) {
-  var result = null;
-  for(var i =0;i<this.dummyData.length;i++) {
-    if( this.dummyData[i]._id == id ) {
-      result = this.dummyData[i];
-      break;
-    }
-  }
-  callback(null, result);
-};
 
-PlotProvider.prototype.save = function(plots, c, callback) {
+PlotProvider.prototype.save = function(plots, c, fileName, callback) {
   var plot = null;
 
   if( typeof(plots.length)=="undefined")
@@ -31,6 +21,7 @@ PlotProvider.prototype.save = function(plots, c, callback) {
   for( var i =0;i< plots.length;i++ ) {
     plot = plots[i];
     plot._id = plotCounter++;
+    plot.fileName = fileName;
     plot.created_at = new Date();
 
     this.dummyData[c]= plot;
@@ -50,7 +41,7 @@ function fillData (err, results) {
       ts.setUTCSeconds(secs);
       new PlotProvider().save([
           {title: 'Plot ' + (i+1), body: isNaN(ts) ? results[i] : ts}
-        ], i, function(error, plots){});
+        ], i, results[i], function(error, plots){});
     };
   }
 }

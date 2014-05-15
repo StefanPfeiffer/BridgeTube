@@ -1,8 +1,12 @@
-h1= title
-#plots
-    - each plot in plots
-      div.plot
-        div.created_at= plot.created_at
-        div.title 
-            a(href="/plot/"+plot._id)!= plot.title
-        div.body= plot.body
+img(src="/logok.jpg")
+table(align="center")
+    tr(valign="top")
+        h2= title
+    tr
+        #plots
+            - each plot in plots
+              div.plot
+                div.created_at= plot.created_at
+                div.title
+                    a(href="/plot/"+plot.fileName)!= plot.title
+                div.body= plot.body

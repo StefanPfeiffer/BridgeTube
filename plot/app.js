@@ -12,6 +12,7 @@ app.configure(function(){
   app.use(require('stylus').middleware({ src: __dirname + '/public' }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+ app.use(express.static(__dirname + '/public/images'));
   app.use(express['static'](__dirname + '/html'));
   app.use(express['static'](__dirname + '/data'));
   app.use(express['static'](__dirname + '/html/data'));

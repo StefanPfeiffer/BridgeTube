@@ -12,7 +12,8 @@ app.configure(function(){
   app.use(require('stylus').middleware({ src: __dirname + '/public' }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
- app.use(express.static(__dirname + '/public/images'));
+  app.use(express.static(__dirname + '/public/images'));
+  app.use(express.static(__dirname + '/public/jsfft'));
   app.use(express['static'](__dirname + '/html'));
   app.use(express['static'](__dirname + '/data'));
   app.use(express['static'](__dirname + '/html/data'));
@@ -35,7 +36,7 @@ app.get('/', function(req, res){
     res.render('index.jade', { locals: {
       title: 'LNDW 14: BMBF Projekt VIVE Brückenüberwachung',
       plots:docs
-      } 
+      }
     });
   })
 });

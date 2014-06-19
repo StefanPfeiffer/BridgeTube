@@ -26,32 +26,50 @@ body {
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
+<script src="http://riga.imp.fu-berlin.de/jsfft/lib/complex_array.js"></script>
+<script src="http://riga.imp.fu-berlin.de/jsfft/lib/fft.js"></script>
 <script>
 
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-var x = d3.scale.linear()
-    .range([0, width]);
+var x_n = d3.scale.linear()
+    .range([0, (width/2)-1]);
+var x_fft = d3.scale.linear()
+    .range([(width/2)+1, width]);
 
-var y = d3.scale.linear()
+var y_n = d3.scale.linear()
+    .range([height, 0]);
+var y_fft = d3.scale.linear()
     .range([height, 0]);
 
 var color = d3.scale.category10();
 
-var xAxis = d3.svg.axis()
-    .scale(x)
+var xAxis_n = d3.svg.axis()
+    .scale(x_n)
+    .orient("bottom");
+var xAxis_fft = d3.svg.axis()
+    .scale(x_fft)
     .orient("bottom");
 
-var yAxis = d3.svg.axis()
-    .scale(y)
+var yAxis_n = d3.svg.axis()
+    .scale(y_n)
+    .orient("left");
+var yAxis_fft = d3.svg.axis()
+    .scale(y_fft)
     .orient("left");
 
-var line = d3.svg.line()
+var counter = 0;
+
+var line_n = d3.svg.line()
     .interpolate("basis")
-    .x(function(d) { return x(d.timestamp); })
-    .y(function(d) { return y(d.val); });
+    .x(function(d) { return x_n(d.timestamp); })
+    .y(function(d) { return y_n(d.val); });
+var line_fft = d3.svg.line()
+    .interpolate("basis")
+    .x(function(d) { return x_fft(counter++); })
+    .y(function(d) { return y_fft(d); });
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -72,11 +90,9 @@ d3.csv("../data/ERSETZMICHBITTE", function(error, data) {
   for(var i = 0; i < data.length; i++ ){
 	data[i].timestamp = timestamp;
 	timestamp += 0.01;
-  } 
-  
-  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "timestamp" }));
+  }
 
-  console.log(data);
+  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "timestamp" }));
 
   var nodes = color.domain().map(function(name) {
     return {
@@ -94,50 +110,102 @@ d3.csv("../data/ERSETZMICHBITTE", function(error, data) {
     };
   });
 
-  x.domain(d3.extent(data, function(d) { return d.timestamp; }));
+  var fft_data = nodes.map(function(n) {
+      return n.values.map(function(v) {
+        return v.val;
+      });
+  });
 
-  y.domain([
+  fft_data = fft_data.map(function(n) {
+      n = new complex_array.ComplexArray(n);
+      return n.FFT();
+  });
+  
+  fft_data = fft_data.map(function(n) {
+     n = n.real;
+     n = n.subarray(n.length / 2);
+     return n;
+  });
+
+  x_n.domain(d3.extent(data, function(d) { return d.timestamp; }));
+  x_fft.domain([0, fft_data[0].length]);
+
+  y_n.domain([
     d3.min(nodes, function(c) { return d3.min(c.values, function(v) { return v.val; }); }),
     d3.max(nodes, function(c) { return d3.max(c.values, function(v) { return v.val; }); })
+  ]);
+
+  <!-- var mi = d3.min(fft_data, function(c) { return d3.min(c); }); -->
+  <!-- var ma = d3.max(fft_data, function(c) { return d3.max(c); }); -->
+
+  y_fft.domain([
+    d3.min(fft_data, function(c) { return d3.min(c); }),
+    d3.max(fft_data, function(c) { return d3.max(c); })
   ]);
 
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
+      .call(xAxis_n)
     .append("text")
       .attr("x", width)
       .attr("y", -5)
       .style("text-anchor", "end")
       .text("Zeit in ms");
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis_fft)
+    .append("text")
+      .attr("x", width)
+      .attr("y", -5)
+      .style("text-anchor", "end")
+      .text("Frequenzen");
 
   svg.append("g")
       .attr("class", "y axis")
-      .call(yAxis)
+      .call(yAxis_n)
     .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
       .text("||v|| in [g]");
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis_fft)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Intensität");
 
-  var node = svg.selectAll(".node")
+  var node_n = svg.selectAll(".node")
       .data(nodes)
     .enter().append("g")
       .attr("class", "node");
+  var node_fft = svg.selectAll(".node")
+      .data(fft_data)
+    .enter().append("g")
+      .attr("class", "node");
 
-  node.append("path")
+  node_n.append("path")
       .attr("class", "line")
-      .attr("d", function(d) { return line(d.values); })
+      .attr("d", function(d) { return line_n(d.values); })
+      .style("stroke", function(d) { return color(d.name); });
+  node_fft.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line_fft(d); })
       .style("stroke", function(d) { return color(d.name); });
 
-  node.append("text")
-      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-      .attr("transform", function(d) { return "translate("
-        + x(d.value.timestamp) + "," + y(d.value.val) + ")"; })
-      .attr("x", 3)
-      .attr("dy", ".35em")
-      .text(function(d) { return d.name; });
+  <!-- node.append("text") -->
+  <!--     .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; }) -->
+  <!--     .attr("transform", function(d) { return "translate(" -->
+  <!--       + x(d.value.timestamp) + "," + y(d.value.val) + ")"; }) -->
+  <!--     .attr("x", 3) -->
+  <!--     .attr("dy", ".35em") -->
+  <!--     .text(function(d) { return d.name; }); -->
 });
 
 </script>
